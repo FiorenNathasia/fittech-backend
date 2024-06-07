@@ -20,7 +20,6 @@ const db = mysql.createConnection({
 });
 const publicDirectory = path.join(__dirname);
 app.use(express.static(publicDirectory));
-app.set("view engine", "hbs");
 
 db.connect((error) => {
   if (error) {
@@ -56,7 +55,7 @@ app.post("/login", (req, res) => {
 });
 
 app.get("/", (req, res) => {
-  res.render("index");
+  res.sendFile(path.join(publicDirectory, "index.html"));
 });
 
 app.listen(8081, () => {
