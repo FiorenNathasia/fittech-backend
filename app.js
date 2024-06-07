@@ -48,7 +48,7 @@ app.post("/login", (req, res) => {
       return res.status(500).json({ error: "Error inserting data" });
     }
     if (data.length > 0) {
-      return res.json("Succes");
+      return res.json("Success");
     } else {
       return res.json("Fail");
     }
