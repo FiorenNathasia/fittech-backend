@@ -1,10 +1,15 @@
 const db = require("../utils/db");
+const jwt = require("jsonwebtoken");
+const bcrypt = require("bcryptjs");
 
 const signup = (req, res) => {
-  const email = req.body.email;
+  const { name, email, password, confirmPassword } = req.body;
+  if (password !== confirmPassword) {
+    return res.status(400).json({ error: "Passwords do not match" });
+  }
 
   const checkEmailQuery = "SELECT * FROM users WHERE email = ?";
-  db.query(checkEmailQuery, [email], (error, results) => {
+  db.query(checkEmailQuery, [email], async (error, results) => {
     if (error) {
       return res.status(500).json({ error: "Error checking email" });
     }
@@ -13,9 +18,13 @@ const signup = (req, res) => {
       return res.status(400).json({ error: "Email already in use" });
     }
 
+    let hashedPassword;
+    hashedPassword = await bcrypt.hash(req.body.password, 8);
+    console.log("Hashed Pasword:", hashedPassword);
+
     // If email doesn't exist, proceed with signup
     const sql = "INSERT INTO users (`name`, `email`, `password`) VALUES (?)";
-    const values = [req.body.name, email, req.body.password];
+    const values = [req.body.name, email, hashedPassword];
     db.query(sql, [values], (error, data) => {
       if (error) {
         return res.status(500).json({ error: "Error inserting data" });
