@@ -22,7 +22,6 @@ const signup = (req, res) => {
     hashedPassword = await bcrypt.hash(req.body.password, 8);
     console.log("Hashed Pasword:", hashedPassword);
 
-    // If email doesn't exist, proceed with signup
     const sql = "INSERT INTO users (`name`, `email`, `password`) VALUES (?)";
     const values = [req.body.name, email, hashedPassword];
     db.query(sql, [values], (error, data) => {
