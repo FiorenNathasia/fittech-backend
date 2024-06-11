@@ -1,5 +1,4 @@
 const db = require("../utils/db");
-const jwt = require("jsonwebtoken");
 const bcrypt = require("bcryptjs");
 
 const signup = (req, res) => {
