@@ -33,8 +33,10 @@ const login = (req, res) => {
           id: user.id,
           isAdmin: user.isAdmin,
         },
-        process.env.ACCESS_TOKEN_SECRET
+        process.env.ACCESS_TOKEN_SECRET,
+        { expiresIn: "15min" }
       );
+
       res.json({
         id: user.id,
         email: user.email,
