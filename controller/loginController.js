@@ -1,8 +1,7 @@
 require("dotenv").config();
 const db = require("../utils/db");
 const jwt = require("jsonwebtoken");
-
-let refreshTokens = [];
+const { generateAccessToken } = require("../utils/token");
 
 const login = (req, res) => {
   const { email, password } = req.body;
@@ -16,15 +15,7 @@ const login = (req, res) => {
     }
     if (data.length > 0) {
       const user = data[0];
-      const accessToken = jwt.sign(
-        {
-          id: user.id,
-          isAdmin: user.isAdmin,
-        },
-        process.env.ACCESS_TOKEN_SECRET,
-        { expiresIn: "20min" }
-      );
-
+      const accessToken = generateAccessToken(user);
       res.json({
         id: user.id,
         email: user.email,
