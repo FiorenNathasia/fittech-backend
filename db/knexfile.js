@@ -12,7 +12,7 @@ module.exports = {
       host: "localhost",
       user: "fiorennathasia",
       password: "gayagaya56781234",
-      database: "knex_tutorial",
+      database: "Fittech",
     },
     pool: {
       min: 2,
