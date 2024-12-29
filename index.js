@@ -6,6 +6,7 @@ const app = express();
 app.use(express.json());
 // app.use(router);
 
+//GET request is to get the data from a database
 app.get("/login", async (req, res) => {
   const userEmail = req.query.email;
   const userPassword = req.query.password;
@@ -27,8 +28,6 @@ app.get("/login", async (req, res) => {
   // so doing result.length - doesn\t make any sense, you cant do .length on
   // something that isn't a list
 
-  console.log(result);
-
   if (result) {
     res.status(200).send({
       data: {
@@ -40,6 +39,42 @@ app.get("/login", async (req, res) => {
   } else {
     res.status(403).send({ message: "You're unauthorized" });
   }
+});
+
+//POST request is creating data
+app.post("/signup", async (req, res) => {
+  const email = req.body.email;
+  //insert first name, last name, email, andd password to the database as a new entry
+  //Step 1: if someone makes a post request, how do you get the data
+  // console.log("POST parameter received are: ", req.body);
+  //Step 2: a. Check if the email already exist in the database
+  const user = await db("users").where("email", email).first();
+
+  //  b. return messsage user already exist (400 (bad request))
+  if (user) {
+    res.status(400).send({ message: "User already exists" });
+  } else {
+    //Step 4: Figure how to insert the data into a database
+    //  a. if the action was succesfull, return 200 (succesfull)
+    const newUser = await db("users")
+      .insert({
+        first_name: req.body.firstName,
+        last_name: req.body.lastName,
+        email: req.body.email,
+        password: req.body.password,
+      })
+      .returning("*");
+    console.log(newUser);
+    res.status(200).send({
+      data: {
+        firstName: newUser[0].first_name,
+        lastName: newUser[0].last_name,
+        email: newUser[0].email,
+      },
+    });
+  }
+  //  b. if not do a catch
+  // Step 5: After successful, return their info (rerturn email, first name, last name)
 });
 
 app.listen(8080, () => {
