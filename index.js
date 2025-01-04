@@ -1,39 +1,34 @@
 const express = require("express");
-// const router = require("./routes/auth");
 const db = require("./db/db");
-
 const app = express();
+const jwt = require("jsonwebtoken");
 app.use(express.json());
-// app.use(router);
 
-//GET request is to get the data from a database
-app.get("/login", async (req, res) => {
-  const userEmail = req.query.email;
-  const userPassword = req.query.password;
+//JWT for  POST login  API
 
-  const result = await db("users")
-    .where("email", userEmail)
-    .andWhere("password", userPassword)
+//POST (to log in user)
+app.post("/login", async (req, res) => {
+  const { email, password } = req.body;
+
+  const user = await db("users")
+    .where("email", email)
+    .andWhere("password", password)
     .first();
 
-  // if we found someone result = [{id:1, first_name ...}]
-  // if we cant find someone result = []
-
-  // if we put .first() at the end, then we always get the first one in the list
-
-  // if we found someone result = {id: 1, first_name ...}
-  // if we cant find someone result = undefined
-
-  // so therefore, when we use .first - result is no longer a list
-  // so doing result.length - doesn\t make any sense, you cant do .length on
-  // something that isn't a list
-
-  if (result) {
+  if (user) {
+    //Generate an access token
+    const accessToken = jwt.sign(
+      // a method in the library used to creat a JSON Web Token
+      { id: user.id, email: user.id }, //Payload: contains known info about the user to verify who the user is
+      "mysecretKey", // Secret  Key: a  private key to generate a digital  signture  to proof authencity of token
+      { expiresIn: "24h" } //option that shows how long the token  is  used for
+    );
     res.status(200).send({
       data: {
-        firstName: result.first_name,
-        lastName: result.last_name,
-        email: result.email,
+        firstName: user.first_name,
+        lastName: user.last_name,
+        email: user.email,
+        accessToken,
       },
     });
   } else {
@@ -41,7 +36,7 @@ app.get("/login", async (req, res) => {
   }
 });
 
-//POST request is creating data
+//POST (creating data for new user)
 app.post("/signup", async (req, res) => {
   const email = req.body.email;
   //insert first name, last name, email, andd password to the database as a new entry
@@ -76,6 +71,26 @@ app.post("/signup", async (req, res) => {
   //  b. if not do a catch
   // Step 5: After successful, return their info (rerturn email, first name, last name)
 });
+
+const verify = (req, res, next) => {
+  const headers = req.headers;
+  console.log(headers); //  {Authorization: "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwiZW1haWwiOjEsImlhdCI6MTczNTY2NTk2OH0.r3Zk7aKayHAmOkR3E5ZxyAN3CaMu880GaWBi94rOyDU", Fioren: "123"}
+
+  const authHeader = req.headers.Authorization;
+  console.log(authHeader); // Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwiZW1haWwiOjEsImlhdCI6MTczNTY2NTk2OH0.r3Zk7aKayHAmOkR3E5ZxyAN3CaMu880GaWBi94rOyDU
+  if (authHeader) {
+    const token = authHeader.split(" ")[1];
+    jwt.verify(token, "mysecretKey", (err, user) => {
+      if (err) {
+        return res.status(403).json("Token is not valid!");
+      }
+      req.user = user;
+      next();
+    });
+  } else {
+    res.status(401).send({ message: "You  are not authenticated!" });
+  }
+};
 
 app.listen(8080, () => {
   console.log("server listening on 8080");
