@@ -1,9 +1,13 @@
 const express = require("express");
+const cors = require("cors");
+const axios = require("axios");
 const db = require("./db/db");
 const app = express();
 const jwt = require("jsonwebtoken");
-app.use(express.json());
+const { YoutubeTranscript } = require("youtube-transcript");
 
+app.use(express.json());
+app.use(cors());
 //Make independent functions to make both access and refresh token
 //This will  make the access and refresh  token has a single responsibility
 //This improves code readability and makes the codebase easier to maintainand reusable in the rest of the code
@@ -87,26 +91,60 @@ app.use(verify);
 
 //To  test the middleware is working
 app.get("/test", (req, res) => {
-  if (res.locals.userId) {
-    return res.status(200).send({ id: res.locals.userId });
-  }
+  const userId = res.locals.userId;
+  return res.status(200).send({ id: userId });
 });
 
 function verify(req, res, next) {
   const authHeader = req.headers.authorization;
-  console.log("this is the middlewares");
   if (!authHeader) {
     return res.status(400).send({ message: "There is no token!" });
   }
   try {
     const token = authHeader.split(" ")[1];
-    res.locals.userId = jwt.verify(token, "mysecretKey").id;
+    const userId = jwt.verify(token, "mysecretKey").id;
+
+    res.locals.userId = userId;
     next();
   } catch (error) {
     return res.status(403).send({ message: "Token is invalid!" });
   }
 }
 
+//POST (receiving data, a single variable called video url)
+
+app.post("/savetest", async (req, res) => {
+  const userUrl = req.body.userUrl;
+  try {
+    const response = await axios.get(userUrl);
+    console.log(response);
+    res.status(200).send({ data: response.data });
+    return response;
+  } catch {
+    res.status(400).send({ message: "Error making request" });
+  }
+});
+
+app.post("/save", async (req, res) => {
+  const videoUrl = req.body.videoUrl;
+  console.log(videoUrl); // Logs the received video URL
+
+  if (!videoUrl) {
+    return res.status(400).send({ message: "Invalid YouTube URL" });
+  }
+
+  try {
+    const transcript = await YoutubeTranscript.fetchTranscript(videoUrl, {
+      lang: "en",
+    });
+    const textOfTranscription = transcript.map((entry) => entry.text);
+    const oneBigString = textOfTranscription.join(" ");
+    console.log(transcript);
+    return res.status(200).send({ data: oneBigString });
+  } catch (error) {
+    res.status(400).send({ message: "Error fetching transcript" });
+  }
+});
 app.listen(8080, () => {
   console.log("server listening on 8080");
 });
