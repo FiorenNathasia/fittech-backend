@@ -12,7 +12,7 @@ exports.up = function (knex) {
       .onUpdate("CASCADE")
       .onDelete("CASCADE");
     table.string("title").notNullable();
-    table.string("steps").notNullable();
+    table.text("steps").notNullable();
     table.string("url").notNullable();
     table.timestamp("created_at").defaultTo(knex.fn.now());
     table.timestamp("updated_at").defaultTo(knex.fn.now());
@@ -24,5 +24,5 @@ exports.up = function (knex) {
  * @returns { Promise<void> }
  */
 exports.down = function (knex) {
-  return knex.schema.dropTable("worrkouts");
+  return knex.schema.dropTable("workouts");
 };

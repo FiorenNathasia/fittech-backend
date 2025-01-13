@@ -5,6 +5,7 @@ const db = require("./db/db");
 const app = express();
 const jwt = require("jsonwebtoken");
 const { YoutubeTranscript } = require("youtube-transcript");
+const ytdl = require("@distube/ytdl-core");
 
 app.use(express.json());
 app.use(cors());
@@ -137,14 +138,30 @@ app.post("/save", async (req, res) => {
     const transcript = await YoutubeTranscript.fetchTranscript(videoUrl, {
       lang: "en",
     });
+    //Get Video Title
+    const videoInfo = await ytdl.getBasicInfo(videoUrl);
+    const videoTitle = videoInfo.videoDetails.title;
+
+    //Get String of Video Steps
     const textOfTranscription = transcript.map((entry) => entry.text);
-    const oneBigString = textOfTranscription.join(" ");
-    console.log(transcript);
-    return res.status(200).send({ data: oneBigString });
+    const transcriptString = textOfTranscription.join(" ");
+    const userId = res.locals.userId;
+
+    const newEntry = await db("workouts")
+      .insert({
+        title: videoTitle,
+        steps: transcriptString,
+        url: videoUrl,
+        user_id: userId,
+      })
+      .returning("*");
+    return res.status(200).send({ data: newEntry });
   } catch (error) {
+    console.log(error);
     res.status(400).send({ message: "Error fetching transcript" });
   }
 });
+
 app.listen(8080, () => {
   console.log("server listening on 8080");
 });
