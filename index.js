@@ -112,8 +112,27 @@ function verify(req, res, next) {
   }
 }
 
-//POST (receiving data, a single variable called video url)
+//GET (info of the logged in user)
+app.get("/user", async (req, res) => {
+  const userId = res.locals.userId;
 
+  try {
+    const userInfo = await db("users").where({ id: userId }).first();
+    console.log(userInfo);
+    res.status(200).send({
+      data: {
+        firstName: userInfo.first_name,
+        lastName: userInfo.last_name,
+        email: userInfo.email,
+      },
+    });
+  } catch (error) {
+    console.log(error);
+    res.status(400).send({ message: "Error retrieving user Information" });
+  }
+});
+
+//POST (receiving data, a single variable called video url)
 app.post("/savetest", async (req, res) => {
   const userUrl = req.body.userUrl;
   try {
@@ -126,6 +145,7 @@ app.post("/savetest", async (req, res) => {
   }
 });
 
+//POST (save video from url and transcribes it)
 app.post("/save", async (req, res) => {
   const videoUrl = req.body.videoUrl;
   console.log(videoUrl); // Logs the received video URL
@@ -159,6 +179,17 @@ app.post("/save", async (req, res) => {
   } catch (error) {
     console.log(error);
     res.status(400).send({ message: "Error fetching transcript" });
+  }
+});
+
+//GET (all Video entry of user)
+app.get("/workouts", async (req, res) => {
+  const userId = res.locals.userId;
+  try {
+    const workouts = await db("workouts").where({ user_id: userId }).select();
+    res.status(200).send({ Workouts: workouts });
+  } catch (error) {
+    res.status(400).send({ message: "Error  retrieving videos" });
   }
 });
 
