@@ -12,7 +12,7 @@ exports.up = function (knex) {
       .onUpdate("CASCADE")
       .onDelete("CASCADE");
     table.string("title").notNullable();
-    table.text("steps").notNullable();
+    table.jsonb("steps").notNullable(); // Change steps column to JSONB type
     table.string("url").notNullable();
     table.timestamp("created_at").defaultTo(knex.fn.now());
     table.timestamp("updated_at").defaultTo(knex.fn.now());

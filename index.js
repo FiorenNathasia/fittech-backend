@@ -196,12 +196,12 @@ app.post("/save", async (req, res) => {
     const textOfTranscription = transcript.map((entry) => entry.text);
     const transcriptString = textOfTranscription.join(" ");
     const stepsString = await chatgpt(transcriptString);
-    console.log(stepsString);
+
     //Make sure it is  correct JSON format & wanted format  which is an  array  of strings
     const stepsJson = convertToJson(stepsString);
-    console.log(isJsonFormat);
+    console.log(stepsJson);
+
     const isCorrectJsonFormat = Array.isArray(stepsJson);
-    console.log(rightFormat);
 
     const userId = res.locals.userId;
 
@@ -209,16 +209,18 @@ app.post("/save", async (req, res) => {
       const newEntry = await db("workouts")
         .insert({
           title: videoTitle,
-          steps: stepsString,
+          steps: JSON.stringify(stepsJson),
           url: videoUrl,
           user_id: userId,
         })
         .returning("*");
+      console.log(newEntry[0]);
       return res.status(200).send({ data: newEntry[0] });
     } else {
       res.status(400).send({ message: "Error  saving entry" });
     }
   } catch (error) {
+    console.log(error);
     res.status(400).send({ message: "Error fetching transcript" });
   }
 });
