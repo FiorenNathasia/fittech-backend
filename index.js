@@ -6,7 +6,6 @@ const app = express();
 const jwt = require("jsonwebtoken");
 const { YoutubeTranscript } = require("youtube-transcript");
 const ytdl = require("@distube/ytdl-core");
-
 app.use(express.json());
 app.use(cors());
 //Make independent functions to make both access and refresh token
@@ -127,7 +126,6 @@ app.get("/user", async (req, res) => {
       },
     });
   } catch (error) {
-    console.log(error);
     res.status(400).send({ message: "Error retrieving user Information" });
   }
 });
@@ -144,11 +142,43 @@ app.post("/savetest", async (req, res) => {
     res.status(400).send({ message: "Error making request" });
   }
 });
+//OpenAi Function
+async function chatgpt(transcript) {
+  const headers = {
+    "Content-Type": "application/json",
+    Authorization: `Bearer ${openAiKey}`,
+  };
+  try {
+    const response = await axios.post(
+      "https://api.openai.com/v1/chat/completions",
+      {
+        model: "gpt-3.5-turbo",
+        messages: [
+          {
+            role: "user",
+            content: `You are a workout assistant, here is a transcript from a workout video "${transcript}", condense it down into a list of key steps and return the steps in the following json format e.g. ["10 push ups", "3 squats"] - return only json, do not include any explainer text or markdown formatting`,
+          },
+        ],
+      },
+      { headers }
+    );
+    const reply = response.data.choices[0].message.content;
+    return reply;
+  } catch (error) {
+    return false;
+  }
+}
 
+function convertToJson(string) {
+  try {
+    return JSON.parse(string);
+  } catch (error) {
+    return false;
+  }
+}
 //POST (save video from url and transcribes it)
 app.post("/save", async (req, res) => {
   const videoUrl = req.body.videoUrl;
-  console.log(videoUrl); // Logs the received video URL
 
   if (!videoUrl) {
     return res.status(400).send({ message: "Invalid YouTube URL" });
@@ -165,19 +195,30 @@ app.post("/save", async (req, res) => {
     //Get String of Video Steps
     const textOfTranscription = transcript.map((entry) => entry.text);
     const transcriptString = textOfTranscription.join(" ");
+    const stepsString = await chatgpt(transcriptString);
+    console.log(stepsString);
+    //Make sure it is  correct JSON format & wanted format  which is an  array  of strings
+    const stepsJson = convertToJson(stepsString);
+    console.log(isJsonFormat);
+    const isCorrectJsonFormat = Array.isArray(stepsJson);
+    console.log(rightFormat);
+
     const userId = res.locals.userId;
 
-    const newEntry = await db("workouts")
-      .insert({
-        title: videoTitle,
-        steps: transcriptString,
-        url: videoUrl,
-        user_id: userId,
-      })
-      .returning("*");
-    return res.status(200).send({ data: newEntry });
+    if (stepsJson && isCorrectJsonFormat) {
+      const newEntry = await db("workouts")
+        .insert({
+          title: videoTitle,
+          steps: stepsString,
+          url: videoUrl,
+          user_id: userId,
+        })
+        .returning("*");
+      return res.status(200).send({ data: newEntry[0] });
+    } else {
+      res.status(400).send({ message: "Error  saving entry" });
+    }
   } catch (error) {
-    console.log(error);
     res.status(400).send({ message: "Error fetching transcript" });
   }
 });
