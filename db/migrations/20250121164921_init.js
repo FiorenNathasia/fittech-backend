@@ -12,13 +12,13 @@ exports.up = function (knex) {
       .onUpdate("CASCADE")
       .onDelete("CASCADE");
     table.string("title").notNullable();
+    table.string("image_url").notNullable();
     table.jsonb("steps").notNullable(); // Change steps column to JSONB type
-    table.string("url").notNullable();
+    table.string("video_url").notNullable();
     table.timestamp("created_at").defaultTo(knex.fn.now());
     table.timestamp("updated_at").defaultTo(knex.fn.now());
   });
 };
-
 /**
  * @param { import("knex").Knex } knex
  * @returns { Promise<void> }

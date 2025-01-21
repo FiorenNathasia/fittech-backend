@@ -4,6 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
+    "migrations": "npx knex migrate:make init --migrations-directory db/migrations",
     "migrate": "npx knex migrate:latest --knexfile db/knexfile.js",
     "dev": "nodemon index.js",
     "test": "echo \"Error: no test specified\" && exit 1"

@@ -208,9 +208,9 @@ app.post("/save", async (req, res) => {
       const newEntry = await db("workouts")
         .insert({
           title: videoTitle,
-          image: videoThumbnail,
+          image_url: videoThumbnail,
           steps: JSON.stringify(stepsJson),
-          url: videoUrl,
+          video_url: videoUrl,
           user_id: userId,
         })
         .returning("*");
@@ -219,6 +219,7 @@ app.post("/save", async (req, res) => {
       res.status(400).send({ message: "Error  saving entry" });
     }
   } catch (error) {
+    console.log(error);
     res.status(400).send({ message: "Error fetching transcript" });
   }
 });
