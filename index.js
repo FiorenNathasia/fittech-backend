@@ -229,7 +229,7 @@ app.get("/workouts", async (req, res) => {
   const userId = res.locals.userId;
   try {
     const workouts = await db("workouts").where({ user_id: userId }).select();
-    res.status(200).send({ Workouts: workouts });
+    res.status(200).send({ data: workouts });
   } catch (error) {
     res.status(400).send({ message: "Error  retrieving videos" });
   }
