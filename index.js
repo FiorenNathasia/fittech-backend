@@ -126,7 +126,7 @@ app.get("/user", async (req, res) => {
       },
     });
   } catch (error) {
-    res.status(400).send({ message: "Error retrieving user Information" });
+    res.status(404).send({ message: "Error retrieving user Information" });
   }
 });
 
@@ -178,12 +178,12 @@ function convertToJson(string) {
 }
 //POST (save video from url and transcribes it)
 app.post("/save", async (req, res) => {
-  const videoUrl = req.body.videoUrl;
+  const videoUrl = req.body.video_url;
 
   if (!videoUrl) {
     return res.status(400).send({ message: "Invalid YouTube URL" });
   }
-
+  //Some videos do not allow transcription, include error for this
   try {
     const transcript = await YoutubeTranscript.fetchTranscript(videoUrl, {
       lang: "en",
@@ -232,6 +232,27 @@ app.get("/workouts", async (req, res) => {
     res.status(200).send({ data: workouts });
   } catch (error) {
     res.status(400).send({ message: "Error  retrieving videos" });
+  }
+});
+
+//GET (one workout)
+app.get("/workouts/:id", async (req, res) => {
+  const userId = res.locals.userId;
+  const videoId = req.params.id;
+  try {
+    const workout = await db("workouts")
+      .where({ id: videoId, user_id: userId })
+      .select()
+      .first();
+
+    if (!workout) {
+      throw new Error("Cannot find workout");
+    }
+    // if cant get the workout then throw error
+    res.status(200).send({ data: workout });
+  } catch (error) {
+    // console.log(error);
+    res.status(404).send({ message: "Not found" });
   }
 });
 
