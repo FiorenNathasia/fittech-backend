@@ -15,7 +15,7 @@ const login = async (req, res) => {
   const user = await db("users").where("email", email).first();
 
   if (!user) {
-    return res.status(400).send({ message: "Invalid email" });
+    return res.status(400).send({ message: "email could not be found" });
   }
 
   const isPasswordCorrect = await bcrypt.compare(password, user.password);
@@ -41,10 +41,24 @@ const signup = async (req, res) => {
   try {
     // Validate required fields
     const { firstName, lastName, email, password } = req.body;
-    if (!firstName || !lastName || !email || !password) {
+    if (!firstName) {
       return res.status(400).send({
-        message:
-          "All fields are required: firstName, lastName, email, and password.",
+        message: "First name is required",
+      });
+    }
+    if (!lastName) {
+      return res.status(400).send({
+        message: "Last name is required",
+      });
+    }
+    if (!email) {
+      return res.status(400).send({
+        message: "Email is required",
+      });
+    }
+    if (!password) {
+      return res.status(400).send({
+        message: "Password is required",
       });
     }
 

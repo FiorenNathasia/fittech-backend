@@ -5,7 +5,6 @@ const getUser = async (req, res) => {
 
   try {
     const userInfo = await db("users").where({ id: userId }).first();
-    console.log(userInfo);
     res.status(200).send({
       data: {
         firstName: userInfo.first_name,
