@@ -14,7 +14,7 @@ const getUser = async (req, res) => {
       },
     });
   } catch (error) {
-    res.status(404).send({ message: "Error retrieving user Information" });
+    res.status(404).send({ message: "Error retrieving user information" });
   }
 };
 
