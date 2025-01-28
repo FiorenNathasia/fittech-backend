@@ -6,15 +6,16 @@
   "scripts": {
     "migrations": "npx knex migrate:make init --migrations-directory db/migrations",
     "migrate": "npx knex migrate:latest --knexfile db/knexfile.js",
-    "dev": "nodemon index.js",
+    "start": "nodemon index.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "@distube/ytdl-core": "^4.15.8",
+    "@distube/ytdl-core": "^4.15.9",
     "axios": "^1.7.9",
+    "bcrypt": "^5.1.1",
     "cors": "^2.8.5",
     "dotenv": "^16.4.7",
     "express": "^4.21.2",

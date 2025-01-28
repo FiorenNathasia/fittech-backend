@@ -1,73 +1,88 @@
-const jwt = require("jsonwebtoken");
 const db = require("../db/db");
-
-//Make independent functions to make both access and refresh token
-//This will  make the access and refresh  token has a single responsibility
-//This improves code readability and makes the codebase easier to maintainand reusable in the rest of the code
-
-//Purpose: Defines the function and specifies its input parameter (user), it represents the user object containing details like id and email, which are required for token payload generation.
-const generateAccessToken = (user) => {
-  return jwt.sign(
-    // a method in the library used to creat a JSON Web Token
-    { id: user.id, email: user.email }, //Payload: contains known info about the user to verify who the user is
-    "mysecretKey", // Secret  Key: a  private key to generate a digital  signture  to proof authencity of token
-    { expiresIn: "24h" } //option that shows how long the token  is  used for
-  );
-};
+const bcrypt = require("bcrypt");
+const generateAccessToken = require("../util/token");
 
 //POST (to log in user)
 const login = async (req, res) => {
   const { email, password } = req.body;
 
-  const user = await db("users")
-    .where("email", email)
-    .andWhere("password", password)
-    .first();
-
-  if (user) {
-    //Generate an access token
-    //The generateAccessToken function is called with the user object.
-    //It takes the  result from  the database access above and use the result in place of the use parameter of the called function
-    //It assigns  the result to a new variables accessToken and refreshToken
-    const accessToken = generateAccessToken(user);
-    res.status(200).send({
-      data: {
-        firstName: user.first_name,
-        lastName: user.last_name,
-        email: user.email,
-        //if both the key and value is the same, you can write it out as one
-        accessToken,
-      },
-    });
-  } else {
-    res.status(403).send({ message: "You're unauthorized" });
+  if (!email || !password) {
+    return res
+      .status(400)
+      .send({ message: "Please enter the required fields" });
   }
+
+  const user = await db("users").where("email", email).first();
+
+  if (!user) {
+    return res.status(400).send({ message: "Invalid email" });
+  }
+
+  const isPasswordCorrect = await bcrypt.compare(password, user.password);
+
+  if (!isPasswordCorrect) {
+    return res.status(400).send({ message: "Invalid password" });
+  }
+
+  const accessToken = generateAccessToken(user);
+  res.status(200).send({
+    message: "You have succesfully logged in!",
+    data: {
+      firstName: user.first_name,
+      lastName: user.last_name,
+      email: user.email,
+      accessToken,
+    },
+  });
 };
 
 //POST (creating data for new user)
 const signup = async (req, res) => {
-  const email = req.body.email;
-  //insert first name, last name, email, andd password to the database as a new entry
-  //Step 1: if someone makes a post request, how do you get the data
-  // console.log("POST parameter received are: ", req.body);
-  //Step 2: a. Check if the email already exist in the database
-  const user = await db("users").where("email", email).first();
-  //  b. return messsage user already exist (400 (bad request))
-  if (user) {
-    res.status(400).send({ message: "User already exists" });
-  } else {
-    //Step 4: Figure how to insert the data into a database
-    //  a. if the action was succesfull, return 200 (succesfull)
+  try {
+    // Validate required fields
+    const { firstName, lastName, email, password } = req.body;
+    if (!firstName || !lastName || !email || !password) {
+      return res.status(400).send({
+        message:
+          "All fields are required: firstName, lastName, email, and password.",
+      });
+    }
+
+    // Validate email format
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      return res.status(400).send({ message: "Invalid email format" });
+    }
+    // Validate password strength
+    if (password.length < 8) {
+      return res
+        .status(400)
+        .send({ message: "Password must be at least 8 characters long" });
+    }
+    // Check if user already exists
+    const user = await db("users").where("email", email).first();
+    if (user) {
+      res.status(400).send({ message: "User already exists" });
+    }
+
+    // Hash the password
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    // Create the user
     const newUser = await db("users")
       .insert({
         first_name: req.body.firstName,
         last_name: req.body.lastName,
         email: req.body.email,
-        password: req.body.password,
+        password: hashedPassword,
       })
       .returning("*");
+
+    // Generate access token (assuming this is a helper function)
     const accessToken = generateAccessToken(newUser[0]);
-    res.status(200).send({
+
+    // Send success response
+    return res.status(200).send({
       data: {
         firstName: newUser[0].first_name,
         lastName: newUser[0].last_name,
@@ -75,9 +90,10 @@ const signup = async (req, res) => {
         accessToken,
       },
     });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).send({ message: "Internal server error" });
   }
-  //  b. if not do a catch
-  // Step 5: After successful, return their info (rerturn email, first name, last name)
 };
 
 module.exports = {

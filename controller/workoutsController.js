@@ -2,15 +2,8 @@ const db = require("../db/db");
 const chatgpt = require("../util/openai");
 const { YoutubeTranscript } = require("youtube-transcript");
 const ytdl = require("@distube/ytdl-core");
-//POST (save video from url and transcribes it)
 
-function convertToJson(string) {
-  try {
-    return JSON.parse(string);
-  } catch (error) {
-    return false;
-  }
-}
+//POST (save video from url and transcribes it)
 const newWorkout = async (req, res) => {
   const videoUrl = req.body.video_url;
 
@@ -34,7 +27,7 @@ const newWorkout = async (req, res) => {
     const stepsString = await chatgpt(transcriptString);
 
     //Make sure it is  correct JSON format & wanted format  which is an  array  of strings
-    const stepsJson = convertToJson(stepsString);
+    const stepsJson = JSON.parse(stepsString);
     const isCorrectJsonFormat = Array.isArray(stepsJson);
     const userId = res.locals.userId;
 

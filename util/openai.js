@@ -1,5 +1,4 @@
 const axios = require("axios");
-
 //OpenAi Function
 async function chatgpt(transcript) {
   const headers = {
