@@ -1,4 +1,5 @@
 const axios = require("axios");
+const openAiKey = process.env.OPEN_AI_KEY;
 
 //OpenAi Function
 async function chatgpt(transcript) {

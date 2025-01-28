@@ -108,6 +108,7 @@ const newWorkout = async (req, res) => {
         .send({ message: "There was an error formating steps into JSON." });
     }
     const isCorrectJsonFormat = Array.isArray(stepsJson);
+
     if (!stepsJson || !isCorrectJsonFormat) {
       return res.status(400).send({
         message: "The steps are not in the correct format (array of strings).",
