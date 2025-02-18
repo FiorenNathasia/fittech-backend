@@ -2,40 +2,6 @@ const db = require("../db/db");
 const bcrypt = require("bcrypt");
 const generateAccessToken = require("../util/token");
 
-//POST (to log in user)
-const login = async (req, res) => {
-  const { email, password } = req.body;
-
-  if (!email || !password) {
-    return res
-      .status(400)
-      .send({ message: "Please enter the required fields" });
-  }
-
-  const user = await db("users").where("email", email).first();
-
-  if (!user) {
-    return res.status(400).send({ message: "email could not be found" });
-  }
-
-  const isPasswordCorrect = await bcrypt.compare(password, user.password);
-
-  if (!isPasswordCorrect) {
-    return res.status(400).send({ message: "Invalid password" });
-  }
-
-  const accessToken = generateAccessToken(user);
-  res.status(200).send({
-    message: "You have succesfully logged in!",
-    data: {
-      firstName: user.first_name,
-      lastName: user.last_name,
-      email: user.email,
-      accessToken,
-    },
-  });
-};
-
 //POST (creating data for new user)
 const signup = async (req, res) => {
   try {
@@ -108,6 +74,40 @@ const signup = async (req, res) => {
     console.error(error);
     return res.status(500).send({ message: "Internal server error" });
   }
+};
+
+//POST (to log in user)
+const login = async (req, res) => {
+  const { email, password } = req.body;
+
+  if (!email || !password) {
+    return res
+      .status(400)
+      .send({ message: "Please enter the required fields" });
+  }
+
+  const user = await db("users").where("email", email).first();
+
+  if (!user) {
+    return res.status(400).send({ message: "email could not be found" });
+  }
+
+  const isPasswordCorrect = await bcrypt.compare(password, user.password);
+
+  if (!isPasswordCorrect) {
+    return res.status(400).send({ message: "Invalid password" });
+  }
+
+  const accessToken = generateAccessToken(user);
+  res.status(200).send({
+    message: "You have succesfully logged in!",
+    data: {
+      firstName: user.first_name,
+      lastName: user.last_name,
+      email: user.email,
+      accessToken,
+    },
+  });
 };
 
 module.exports = {

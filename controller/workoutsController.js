@@ -101,8 +101,29 @@ const getVideo = async (req, res) => {
   }
 };
 
+const deleteWorkout = async (req, res) => {
+  const userId = res.locals.userId;
+  const workoutId = req.params.id;
+
+  try {
+    const workout = await db("workouts")
+      .where({ id: workoutId, user_id: userId })
+      .first();
+
+    if (!workout) {
+      throw new Error("Cannot find workout!");
+    }
+    const deletedWorkout = await db("workouts").where({ id: workoutId }).del();
+
+    res.status(200).send({ message: "Workout deleted successfully!" });
+  } catch (error) {
+    console.log(error);
+    res.status(404).send({ message: "There was an error deleting workout!" });
+  }
+};
 module.exports = {
   newWorkout,
   getVideos,
   getVideo,
+  deleteWorkout,
 };
