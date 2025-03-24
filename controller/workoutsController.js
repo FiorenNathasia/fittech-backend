@@ -72,8 +72,21 @@ const newWorkout = async (req, res) => {
 const getVideos = async (req, res) => {
   const userId = res.locals.userId;
   try {
-    const workouts = await db("workouts").where({ user_id: userId }).select();
-    res.status(200).send({ data: workouts });
+    //First wewe want to know if we shouldd filter favourites or not
+    //If we know if we don't want to filter, we are just returning workouts as normal
+    //If we do want to filter then how do we filter
+    //1 way is to get all the workouts out of the database and hen just filte with javascript(like done below)
+    //Better way is to filter on tthe database
+
+    if (req.query.filterFavourites === "true") {
+      const favouriteWorkouts = await db("workouts")
+        .where({ user_id: userId, isFavourite: true })
+        .select();
+      res.status(200).send({ data: favouriteWorkouts });
+    } else {
+      const workouts = await db("workouts").where({ user_id: userId }).select();
+      res.status(200).send({ data: workouts });
+    }
   } catch (error) {
     res
       .status(400)
@@ -121,9 +134,45 @@ const deleteWorkout = async (req, res) => {
     res.status(404).send({ message: "There was an error deleting workout!" });
   }
 };
+
+//PUT (favourite a workout)
+const updateFavourite = async (req, res) => {
+  const userId = res.locals.userId;
+  const workoutId = req.params.id;
+  const { isFavourite } = req.body;
+
+  try {
+    const workout = await db("workouts")
+      .where({
+        id: workoutId,
+        user_id: userId,
+      })
+      .select();
+    if (!workout) {
+      res.status(404).send({ message: `Video with ID ${videoId} not found` });
+    }
+    const updatedWorkout = await db("workouts")
+      .where({
+        id: workoutId,
+        user_id: userId,
+      })
+      .update({ isFavourite });
+
+    if (updatedWorkout) {
+      res.status(200).send({ data: isFavourite });
+    } else {
+      res.status(404).send({ message: "Workout not found." });
+    }
+  } catch (error) {
+    console.log(error);
+    res.status(500).send({ message: "Error updating workout." });
+  }
+};
+
 module.exports = {
   newWorkout,
   getVideos,
   getVideo,
   deleteWorkout,
+  updateFavourite,
 };
