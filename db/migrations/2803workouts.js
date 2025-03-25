@@ -15,7 +15,7 @@ exports.up = function (knex) {
     table.string("image_url").notNullable();
     table.jsonb("steps").notNullable();
     table.string("video_url").notNullable();
-    table.boolean("isFavourite").defaultTo(false);
+    table.boolean("is_favourite").defaultTo(false);
     table.timestamp("created_at").defaultTo(knex.fn.now());
     table.timestamp("updated_at").defaultTo(knex.fn.now());
   });
