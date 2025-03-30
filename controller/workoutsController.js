@@ -81,10 +81,14 @@ const getVideos = async (req, res) => {
     if (req.query.filterFavourites === "true") {
       const favouriteWorkouts = await db("workouts")
         .where({ user_id: userId, is_favourite: true })
+        .orderBy("created_at", "desc")
         .select();
       res.status(200).send({ data: favouriteWorkouts });
     } else {
-      const workouts = await db("workouts").where({ user_id: userId }).select();
+      const workouts = await db("workouts")
+        .where({ user_id: userId })
+        .orderBy("created_at", "desc")
+        .select();
       res.status(200).send({ data: workouts });
     }
   } catch (error) {
@@ -149,7 +153,9 @@ const updateFavourite = async (req, res) => {
       })
       .select();
     if (!workout) {
-      res.status(404).send({ message: `Video with ID ${videoId} not found` });
+      res
+        .status(404)
+        .send({ message: `Workout with ID ${workoutId} not found` });
     }
     const updatedWorkout = await db("workouts")
       .where({
