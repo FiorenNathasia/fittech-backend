@@ -34,15 +34,19 @@ const newWorkout = async (req, res) => {
     const textOfTranscription = transcript.map((entry) => entry.text);
     const transcriptString = textOfTranscription.join(" ");
     const stepsString = await chatgpt(transcriptString);
-    const stepsJson = JSON.parse(stepsString);
-    const isCorrectJsonFormat = Array.isArray(stepsJson);
+    const responseJson = JSON.parse(stepsString);
+    if (!responseJson.success) {
+      return res.status(400).send({ message: "This is not a workout video." });
+    }
 
+    const stepsJson = responseJson.steps;
+    const isCorrectJsonFormat = Array.isArray(stepsJson);
     if (!stepsJson || !isCorrectJsonFormat) {
       throw new Error(
         "Invalid steps format. Steps should be an array of strings."
       );
     }
-    //Save the new workout to the database
+
     const userId = res.locals.userId;
 
     try {
@@ -62,6 +66,7 @@ const newWorkout = async (req, res) => {
         .send({ message: "There was an  error saving the workout." });
     }
   } catch (error) {
+    console.log(error);
     res.status(500).send({
       message: "There is an internal server error.",
     });
@@ -72,7 +77,7 @@ const newWorkout = async (req, res) => {
 const getVideos = async (req, res) => {
   const userId = res.locals.userId;
   try {
-    //First wewe want to know if we shouldd filter favourites or not
+    //First we want to know if we shouldd filter favourites or not
     //If we know if we don't want to filter, we are just returning workouts as normal
     //If we do want to filter then how do we filter
     //1 way is to get all the workouts out of the database and hen just filte with javascript(like done below)
