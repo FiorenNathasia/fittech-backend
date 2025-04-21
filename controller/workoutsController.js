@@ -1,5 +1,6 @@
 const db = require("../db/db");
 const chatgpt = require("../util/openai");
+const { isValidUrl, isYouTubeUrl } = require("../util/url");
 const { YoutubeTranscript } = require("youtube-transcript");
 const ytdl = require("@distube/ytdl-core");
 
@@ -8,8 +9,19 @@ const newWorkout = async (req, res) => {
   const videoUrl = req.body.video_url;
   //Validate the video URL
   if (!videoUrl) {
-    return res.status(400).send({ message: "Enter a valid video URL." });
+    return res.status(400).send({ message: "Enter a video URL." });
   }
+
+  if (!isValidUrl(videoUrl)) {
+    return res.status(400).send({ message: "Invalid URL format." });
+  }
+
+  if (!isYouTubeUrl(videoUrl)) {
+    return res
+      .status(400)
+      .send({ message: "Please enter a valid YouTube URL." });
+  }
+
   try {
     //Get the transcript & information of the video
     const transcript = await YoutubeTranscript.fetchTranscript(videoUrl, {
@@ -66,7 +78,6 @@ const newWorkout = async (req, res) => {
         .send({ message: "There was an  error saving the workout." });
     }
   } catch (error) {
-    console.log(error);
     res.status(500).send({
       message: "There is an internal server error.",
     });

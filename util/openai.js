@@ -22,7 +22,6 @@ async function chatgpt(transcript) {
     { headers }
   );
   const reply = response.data.choices[0].message.content;
-  console.log(reply);
   return reply;
 }
 
