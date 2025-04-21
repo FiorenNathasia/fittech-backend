@@ -9,17 +9,17 @@ const newWorkout = async (req, res) => {
   const videoUrl = req.body.video_url;
   //Validate the video URL
   if (!videoUrl) {
-    return res.status(400).send({ message: "Enter a video URL." });
+    return res.status(400).send({ message: "Enter a video URL" });
   }
 
   if (!isValidUrl(videoUrl)) {
-    return res.status(400).send({ message: "Invalid URL format." });
+    return res.status(400).send({ message: "Invalid URL format" });
   }
 
   if (!isYouTubeUrl(videoUrl)) {
     return res
       .status(400)
-      .send({ message: "Please enter a valid YouTube URL." });
+      .send({ message: "Please enter a valid YouTube URL" });
   }
 
   try {
@@ -40,7 +40,7 @@ const newWorkout = async (req, res) => {
     const videoThumbnail = thumbnails[thumbnails.length - 1].url;
 
     if (!videoTitle || !videoThumbnail) {
-      throw new Error("Missing video title or thumbnail.");
+      throw new Error("Missing video title or thumbnail");
     }
     //Convert transcript into string
     const textOfTranscription = transcript.map((entry) => entry.text);
@@ -48,14 +48,14 @@ const newWorkout = async (req, res) => {
     const stepsString = await chatgpt(transcriptString);
     const responseJson = JSON.parse(stepsString);
     if (!responseJson.success) {
-      return res.status(400).send({ message: "This is not a workout video." });
+      return res.status(400).send({ message: "This is not a workout video" });
     }
 
     const stepsJson = responseJson.steps;
     const isCorrectJsonFormat = Array.isArray(stepsJson);
     if (!stepsJson || !isCorrectJsonFormat) {
       throw new Error(
-        "Invalid steps format. Steps should be an array of strings."
+        "Invalid steps format. Steps should be an array of strings"
       );
     }
 
@@ -75,11 +75,11 @@ const newWorkout = async (req, res) => {
     } catch (err) {
       return res
         .status(500)
-        .send({ message: "There was an  error saving the workout." });
+        .send({ message: "There was an  error saving the workout" });
     }
   } catch (error) {
     res.status(500).send({
-      message: "There is an internal server error.",
+      message: "There is an internal server error",
     });
   }
 };
@@ -108,9 +108,7 @@ const getVideos = async (req, res) => {
       res.status(200).send({ data: workouts });
     }
   } catch (error) {
-    res
-      .status(400)
-      .send({ message: "There was an error retrieving workouts." });
+    res.status(400).send({ message: "There was an error retrieving workouts" });
   }
 };
 
@@ -130,7 +128,7 @@ const getVideo = async (req, res) => {
     // if cant get the workout then throw error
     res.status(200).send({ data: workout });
   } catch (error) {
-    res.status(404).send({ message: "The workout could not found." });
+    res.status(404).send({ message: "The workout could not found" });
   }
 };
 
@@ -183,11 +181,11 @@ const updateFavourite = async (req, res) => {
     if (updatedWorkout) {
       res.status(200).send({ data: is_favourite });
     } else {
-      res.status(404).send({ message: "Workout not found." });
+      res.status(404).send({ message: "Workout not found" });
     }
   } catch (error) {
     console.log(error);
-    res.status(500).send({ message: "Error updating workout." });
+    res.status(500).send({ message: "Error updating workout" });
   }
 };
 
