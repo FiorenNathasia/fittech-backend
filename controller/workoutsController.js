@@ -73,11 +73,13 @@ const newWorkout = async (req, res) => {
         .returning("*");
       return res.status(200).send({ data: newEntry[0] });
     } catch (err) {
+      console.log(err);
       return res
         .status(500)
         .send({ message: "There was an  error saving the workout" });
     }
   } catch (error) {
+    console.log(err);
     res.status(500).send({
       message: "There is an internal server error",
     });
