@@ -10,6 +10,10 @@ const verify = require("./middleware/verify");
 app.use(express.json());
 app.use(cors());
 
+app.get("/", (_, res) => {
+  res.send("Hello world");
+});
+
 app.use("/api/auth", authRouter);
 
 app.use(verify);
