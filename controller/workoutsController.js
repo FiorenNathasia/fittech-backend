@@ -79,7 +79,7 @@ const newWorkout = async (req, res) => {
         .send({ message: "There was an  error saving the workout" });
     }
   } catch (error) {
-    console.log(err);
+    console.log(error);
     res.status(500).send({
       message: "There is an internal server error",
     });
