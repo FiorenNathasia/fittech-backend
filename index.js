@@ -17,6 +17,8 @@ app.use(verify);
 app.use("/api/user", userRouter);
 app.use("/api/workouts", workoutsRouter);
 
-app.listen(8080, () => {
-  console.log("server listening on 8080");
+const port = process.env.PORT || 3030;
+
+app.listen(port, () => {
+  console.log(`server listening on ${port}`);
 });
