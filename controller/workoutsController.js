@@ -1,10 +1,6 @@
 const db = require("../db/db");
 const chatgpt = require("../util/openai");
 const { isValidUrl, isYouTubeUrl } = require("../util/url");
-const { YoutubeTranscript } = require("youtube-transcript");
-const { fetchTranscript } = require("youtube-transcript-plus");
-const { HttpsProxyAgent } = require("https-proxy-agent");
-const ytdl = require("@distube/ytdl-core");
 const axios = require("axios");
 
 //POST (save video from url and transcribes it)
@@ -28,7 +24,6 @@ const newWorkout = async (req, res) => {
 
   try {
     //Get the transcript & information of the video
-
     const transcriptData = await axios.get(
       "https://api.supadata.ai/v1/youtube/transcript?url=" +
         videoUrl +
@@ -41,7 +36,6 @@ const newWorkout = async (req, res) => {
     );
 
     const transcriptString = transcriptData.data.content;
-
     if (!transcriptString) {
       return res.status(400).send({
         message: "There was an error getting the transcript",
@@ -57,42 +51,12 @@ const newWorkout = async (req, res) => {
       }
     );
 
-    // Custom fetch function that uses the proxy agent and preserves headers
-    // const proxyFetch = async ({ url, lang, userAgent }) => {
-    //   return fetch(url, {
-    //     agent: proxyAgent,
-    //     headers: {
-    //       "User-Agent": userAgent,
-    //       ...(lang && { "Accept-Language": lang }),
-    //     },
-    //   });
-    // };
-
-    // const transcript = await fetchTranscript(videoUrl, {
-    //   videoFetch: proxyFetch,
-    //   transcriptFetch: proxyFetch,
-    // });
-
-    // const transcript = await YoutubeTranscript.fetchTranscript(videoUrl, {
-    //   lang: "en",
-    // });
-
-    // if (!transcript) {
-    //   return res.status(400).send({
-    //     message: "There was an error getting the transcript",
-    //   });
-    // }
-
-    // const videoInfo = await ytdl.getBasicInfo(videoUrl);
     const videoTitle = videoData.data.title;
     const videoThumbnail = videoData.data.thumbnail;
-
     if (!videoTitle || !videoThumbnail) {
       throw new Error("Missing video title or thumbnail");
     }
-    //Convert transcript into string
-    // const textOfTranscription = transcript.map((entry) => entry.text);
-    // const transcriptString = textOfTranscription.join(" ");
+
     const stepsString = await chatgpt(transcriptString);
     const responseJson = JSON.parse(stepsString);
     if (!responseJson.success) {
