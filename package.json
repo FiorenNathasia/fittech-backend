@@ -19,14 +19,17 @@
     "cors": "^2.8.5",
     "dotenv": "^16.4.7",
     "express": "^4.21.2",
+    "https-proxy-agent": "^7.0.6",
     "jsonwebtoken": "^9.0.2",
     "knex": "^3.1.0",
+    "node-fetch": "^3.3.2",
     "openai": "^4.79.1",
     "pg": "^8.13.1",
-    "writefile": "^0.2.8",
-    "youtube-transcript": "^1.2.1"
+    "youtube-transcript": "^1.2.1",
+    "youtube-transcript-plus": "^1.0.4"
   },
   "devDependencies": {
+    "eslint": "^9.27.0",
     "nodemon": "^3.1.9"
   }
 }

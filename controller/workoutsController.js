@@ -1,12 +1,15 @@
 const db = require("../db/db");
 const chatgpt = require("../util/openai");
 const { isValidUrl, isYouTubeUrl } = require("../util/url");
-const { YoutubeTranscript } = require("youtube-transcript");
+// const { YoutubeTranscript } = require("youtube-transcript");
+const { fetchTranscript } = require("youtube-transcript-plus");
+const { HttpsProxyAgent } = require("https-proxy-agent");
 const ytdl = require("@distube/ytdl-core");
 
 //POST (save video from url and transcribes it)
 const newWorkout = async (req, res) => {
   const videoUrl = req.body.video_url;
+
   //Validate the video URL
   if (!videoUrl) {
     return res.status(400).send({ message: "Enter a video URL" });
@@ -24,9 +27,28 @@ const newWorkout = async (req, res) => {
 
   try {
     //Get the transcript & information of the video
-    const transcript = await YoutubeTranscript.fetchTranscript(videoUrl, {
-      lang: "en",
+    const proxy = `http://${process.env.PROXY_USERNAME}:${process.env.PROXY_PASSWORD}@proxy.webshare.io:${process.env.PROXY_PORT}`;
+    const proxyAgent = new HttpsProxyAgent(proxy);
+
+    // Custom fetch function that uses the proxy agent and preserves headers
+    const proxyFetch = async ({ url, lang, userAgent }) => {
+      return fetch(url, {
+        agent: proxyAgent,
+        headers: {
+          "User-Agent": userAgent,
+          ...(lang && { "Accept-Language": lang }),
+        },
+      });
+    };
+
+    const transcript = await fetchTranscript(videoUrl, {
+      videoFetch: proxyFetch,
+      transcriptFetch: proxyFetch,
     });
+
+    // const transcript = await YoutubeTranscript.fetchTranscript(videoUrl, {
+    //   lang: "en",
+    // });
 
     if (!transcript) {
       return res.status(400).send({
