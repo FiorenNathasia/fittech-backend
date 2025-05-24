@@ -27,7 +27,7 @@ const newWorkout = async (req, res) => {
 
   try {
     //Get the transcript & information of the video
-    const proxy = `http://${process.env.PROXY_USERNAME}:${process.env.PROXY_PASSWORD}@proxy.webshare.io:${process.env.PROXY_PORT}`;
+    const proxy = process.env.PROXY_URL;
     const proxyAgent = new HttpsProxyAgent(proxy);
 
     // Custom fetch function that uses the proxy agent and preserves headers
