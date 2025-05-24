@@ -29,7 +29,7 @@ const newWorkout = async (req, res) => {
   try {
     //Get the transcript & information of the video
 
-    const response = await axios.get(
+    const transcriptData = await axios.get(
       "https://api.supadata.ai/v1/youtube/transcript?url=" +
         videoUrl +
         "&text=true",
@@ -40,13 +40,22 @@ const newWorkout = async (req, res) => {
       }
     );
 
-    const transcriptString = response.data.content;
+    const transcriptString = transcriptData.data.content;
 
     if (!transcriptString) {
       return res.status(400).send({
         message: "There was an error getting the transcript",
       });
     }
+
+    const videoData = await axios.get(
+      "https://api.supadata.ai/v1/youtube/video?id=" + videoUrl,
+      {
+        headers: {
+          "x-api-key": process.env.SUPADATA_KEY,
+        },
+      }
+    );
 
     // Custom fetch function that uses the proxy agent and preserves headers
     // const proxyFetch = async ({ url, lang, userAgent }) => {
@@ -74,10 +83,9 @@ const newWorkout = async (req, res) => {
     //   });
     // }
 
-    const videoInfo = await ytdl.getBasicInfo(videoUrl);
-    const videoTitle = videoInfo.videoDetails.title;
-    const thumbnails = videoInfo.videoDetails.thumbnails;
-    const videoThumbnail = thumbnails[thumbnails.length - 1].url;
+    // const videoInfo = await ytdl.getBasicInfo(videoUrl);
+    const videoTitle = videoData.data.title;
+    const videoThumbnail = videoData.data.thumbnail;
 
     if (!videoTitle || !videoThumbnail) {
       throw new Error("Missing video title or thumbnail");
